@@ -7,6 +7,7 @@ import com.example.demo.db.repository.CompetitionRepository;
 import com.example.demo.db.repository.DriverRepository;
 import com.example.demo.db.repository.TeamRepository;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -61,26 +62,23 @@ public class TenARunner implements CommandLineRunner {
             int c = 0;
             for (Cell cell : row) {
 
-                switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
-                    case Cell.CELL_TYPE_NUMERIC:
-                        int numericCellValue = (int) cell.getNumericCellValue();
-                        if (c == 0) {
-                            competition.setSeason(numericCellValue);
-                        } else if (c == 3) {
-                            competition.setPlace(numericCellValue);
-                        }
+                if (CellType.NUMERIC.equals(formulaEvaluator.evaluateInCell(cell).getCellTypeEnum())) {
+                    int numericCellValue = (int) cell.getNumericCellValue();
+                    if (c == 0) {
+                        competition.setSeason(numericCellValue);
+                    } else if (c == 3) {
+                        competition.setPlace(numericCellValue);
+                    }
+                } else if (CellType.STRING.equals(formulaEvaluator.evaluateInCell(cell).getCellTypeEnum())) {
+                    String stringCellValue = cell.getStringCellValue();
 
-                        break;
-                    case Cell.CELL_TYPE_STRING:
-                        String stringCellValue = cell.getStringCellValue();
-
-                        if (c == 1) {
-                            driverName = stringCellValue;
-                        } else if (c == 2) {
-                            teamName = stringCellValue;
-                        }
-                        break;
+                    if (c == 1) {
+                        driverName = stringCellValue;
+                    } else if (c == 2) {
+                        teamName = stringCellValue;
+                    }
                 }
+
 
                 Optional<Team> teamOptional = teamRepository.findByName(teamName);
                 if (teamOptional.isPresent()) {
@@ -117,17 +115,16 @@ public class TenARunner implements CommandLineRunner {
             int c = 0;
             for (Cell cell : row) {
 
-                switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
-                    case Cell.CELL_TYPE_STRING:
-                        String stringCellValue = cell.getStringCellValue();
+                if (CellType.STRING.equals(formulaEvaluator.evaluateInCell(cell).getCellTypeEnum())) {
+                    String stringCellValue = cell.getStringCellValue();
 
-                        if (c == 1) {
-                            driver.setName(stringCellValue);
-                        } else if (c == 2) {
-                            team.setName(stringCellValue);
-                        }
-                        break;
+                    if (c == 1) {
+                        driver.setName(stringCellValue);
+                    } else if (c == 2) {
+                        team.setName(stringCellValue);
+                    }
                 }
+
 
                 Optional<Team> teamOptional = teamRepository.findByName(team.getName());
                 if (teamOptional.isEmpty()) {
@@ -144,8 +141,4 @@ public class TenARunner implements CommandLineRunner {
         }
     }
 
-
-    private boolean isYear(double numericCellValue) {
-        return numericCellValue > 1900;
-    }
 }
